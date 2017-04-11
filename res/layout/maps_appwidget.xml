@@ -13,15 +13,47 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorAccent"
+        android:id="@+id/maps_google"
+        >
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
 
+        <TextView
+                android:id="@+id/maps_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/city_name"
+                android:textColor="@color/white"
+                android:textSize="60sp"
+                android:padding="20dp"
+                />
+        <TextView
+                android:id="@+id/maps_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="20dp"
+                android:text="@string/street_name"
+                android:textColor="@color/white"
+                android:textSize="30sp"
+                />
+
+
+    </LinearLayout>
     <ImageView
-            android:id="@+id/widget_main"
-            android:layout_width="fill_parent"
-            android:layout_height="@dimen/place_hold_height"
-            android:background="@drawable/nav_widget_not_navigating"
+            android:layout_alignParentRight="true"
+            android:id="@+id/maps_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:src="@drawable/ic_launcher"
             />
-</FrameLayout>
+
+</RelativeLayout>

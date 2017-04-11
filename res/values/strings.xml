@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">LeecoGoogleMapsWidget</string>
+    <string name="city_name">New York</string>
+    <string name="street_name">No. 20 South Street EAT</string>
     <string name="hello">Hello World, LeecoMapsProxyActivity</string>
     <!-- Text to convey to the user that the current device does not have a maps application. -->
     <string name="error_text">No maps application installed. Please contact your car
-        manufacturer.</string>
+        manufacturer.
+    </string>
 </resources>

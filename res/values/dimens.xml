@@ -17,5 +17,5 @@ limitations under the License.
     <!-- The width of the container holding the error text. -->
     <dimen name="error_text_container_width">600dp</dimen>
     <dimen name="place_hold_width">800dp</dimen>
-    <dimen name="place_hold_height">270dp</dimen>
+    <dimen name="place_hold_height">100dp</dimen>
 </resources>
