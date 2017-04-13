@@ -20,12 +20,18 @@ limitations under the License.
         android:background="@color/colorAccent"
         android:id="@+id/maps_google"
         >
+    <ImageView android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:background="@drawable/nav_widget_navigating"
+               android:id="@+id/maps_background"
+               android:visibility="gone"
+            />
     <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:id="@+id/maps_linear"
             >
-
         <TextView
                 android:id="@+id/maps_title"
                 android:layout_width="wrap_content"
@@ -44,8 +50,6 @@ limitations under the License.
                 android:textColor="@color/white"
                 android:textSize="30sp"
                 />
-
-
     </LinearLayout>
     <ImageView
             android:layout_alignParentRight="true"
