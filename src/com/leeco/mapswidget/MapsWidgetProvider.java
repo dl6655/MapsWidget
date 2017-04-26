@@ -1,4 +1,4 @@
-package com.leeco.LeecoMapsWidget;
+package com.leeco.mapswidget;
 
 import android.app.Notification;
 import android.app.IInterceptNotification;
@@ -10,6 +10,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,6 +23,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RemoteViews;
 import android.widget.TextView;
+import org.json.JSONException;
+import utils.JSONHelper;
+import utils.Utilities;
 
 import java.util.ArrayList;
 
@@ -55,9 +60,6 @@ public class MapsWidgetProvider extends AppWidgetProvider {
         pendingIntent = PendingIntent.getActivity(context,
                 0 /* no requestCode */, intent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.maps_google, pendingIntent);
-        views.setViewVisibility(R.id.maps_background, View.GONE);
-        views.setViewVisibility(R.id.maps_linear, View.VISIBLE);
-        views.setViewVisibility(R.id.maps_icon, View.VISIBLE);
     }
 
     private void receive(Context context, Intent intent) {
@@ -108,7 +110,6 @@ public class MapsWidgetProvider extends AppWidgetProvider {
                 return;
             }
             String pkg = notification.getPackageName();
-
             if (pkg.equals("com.leeco.notificationTestData") || pkg.equals("com.google.android.apps.maps")) {
                 final Notification n = notification.getNotification();
                 if (n == null) {
@@ -120,74 +121,117 @@ public class MapsWidgetProvider extends AppWidgetProvider {
         }
     };
 
-    private void fillHandlerData(Context context, String title0, String title1) {
-        String title = title0;
-        String text = title1;
-//        Icon iconSmall = n.getSmallIcon();
+    private void fillHandlerData(Context context, final MapsEntity mapsEntity) {
+        String title = mapsEntity.getTitle_first();
+        String text = mapsEntity.getTitle_second();
+        String text1 = mapsEntity.getTitle_third();
+        Drawable iconDraw = mapsEntity.getArrow();
+        if (iconDraw == null) {
+            return;
+        }
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.maps_appwidget);
         linkButtons(context, views, false /* not playing */);
         if (title != null) {
             views.setTextViewText(R.id.maps_title, title);
             views.setTextViewText(R.id.maps_text, text);
-
+            views.setTextViewText(R.id.maps_text1, text1);
+            Bitmap iconSmall = Utilities.drawableToBitmap(mContext, iconDraw);
+            if (iconSmall != null) {
+                views.setImageViewBitmap(R.id.maps_icon, iconSmall);
+            } else {
+                views.setImageViewResource(R.id.maps_icon, R.drawable.ic_launcher);
+            }
         }
         appWidgetManager.updateAppWidget(new ComponentName(context, MapsWidgetProvider.class), views);
     }
 
-    private void fillWidgetData(Notification n) {
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(mContext);
-        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.maps_appwidget);
-        views = n.contentView;
-
+    private void fillWidgetData(final Notification n) {
+        RemoteViews views = n.bigContentView;
+        if (views == null) {
+            return;
+        }
         ViewGroup viewGroup = (ViewGroup) views.apply(mContext, null);
-        ArrayList<String> strArrayList = new ArrayList<String>();
+        getRemoteView(viewGroup);
+    }
 
+    private void getRemoteView(ViewGroup viewGroup) {
         int childSize = viewGroup.getChildCount();
+        MapsEntity mapsEntity = new MapsEntity();
         for (int i = 0; i < childSize; i++) {
-            View view1 = viewGroup.getChildAt(i);
+            View view0 = viewGroup.getChildAt(i);
             if (i == 0) {
-                ImageView imageView = (ImageView) view1;
+                if (!(view0 instanceof ImageView)) {
+                    return;
+                }
+                ImageView imageView = (ImageView) view0;
+                mapsEntity.setArrow(imageView.getDrawable());
             }
             if (i == 1) {
-                ViewGroup viewGroup1 = (ViewGroup) view1;
+                ViewGroup viewGroup1 = (ViewGroup) view0;
                 int childSize1 = viewGroup1.getChildCount();
-                if (childSize1 > 0) {
-                    for (int i1 = 0; i1 < childSize1; i1++) {
-                        ViewGroup viewGroup2 = (ViewGroup) viewGroup1.getChildAt(i1);
+                for (int i1 = 0; i1 < childSize1; i1++) {
+                    View view1 = viewGroup1.getChildAt(i1);
+                    if (i1 == 0) {
+                        ViewGroup viewGroup2 = (ViewGroup) view1;
                         int childSize2 = viewGroup2.getChildCount();
-                        if (childSize2 > 0) {
-                            for (int i2 = 0; i2 < childSize2; i2++) {
-                                View view3 = viewGroup2.getChildAt(i2);
-                                TextView textView = (TextView) view3;
-                                String str = textView.getText().toString();
-                                strArrayList.add(str);
+                        for (int i2 = 0; i2 < childSize2; i2++) {
+                            View view2 = viewGroup2.getChildAt(i2);
+                            if (!(view2 instanceof TextView)) {
+                                return;
                             }
-                            mHandler.obtainMessage(MSG_SETWIDGETDATA, strArrayList).sendToTarget();
+                            TextView textView = (TextView) view2;
+                            String str = textView.getText().toString();
+                            if (str != null && str.length() > 0) {
+                                switch (i2) {
+                                    case 0:
+                                        mapsEntity.setTitle_first(str);
+                                        break;
+                                    case 1:
+                                        mapsEntity.setTitle_second(str);
+                                        break;
+                                    case 2:
+                                        mapsEntity.setTitle_third(str);
+                                        break;
+                                }
+                            }
+                        }
+                        if (mapsEntity.getArrow() != null) {
+                            mHandler.obtainMessage(MSG_SETWIDGETDATA, mapsEntity).sendToTarget();
                         }
                     }
+                    break;
                 }
-
             }
         }
     }
 
-    private ArrayList<ViewGroup> viewArrayList = new ArrayList<ViewGroup>();
+    private ArrayList<ViewGroup> fillView(ViewGroup viewGroup) {
+        ArrayList<ViewGroup> viewGroupsArrayList = new ArrayList<ViewGroup>();
+        getView(viewGroup, viewGroupsArrayList);
+        return viewGroupsArrayList;
 
-    private ArrayList<ViewGroup> getView(ViewGroup viewGroup) {
+    }
+
+    private void parserView(ArrayList<ViewGroup> viewGroupsArrayList) {
+        int arraySize = viewGroupsArrayList.size();
+        for (int i = 0; i < arraySize; i++) {
+            View view = viewGroupsArrayList.get(i);
+        }
+    }
+
+    private void getView(ViewGroup viewGroup, ArrayList<ViewGroup> viewGroupsArrayList) {
         int childSize = viewGroup.getChildCount();
         if (childSize > 0) {
             for (int i = 0; i < childSize; i++) {
                 ViewGroup viewGroup1 = (ViewGroup) (viewGroup.getChildAt(i));
                 if (viewGroup1.getChildCount() > 0) {
-                    getView(viewGroup1);
+                    getView(viewGroup1, viewGroupsArrayList);
                 } else {
-                    viewArrayList = new ArrayList<ViewGroup>();
-                    viewArrayList.add(viewGroup1);
+                    viewGroupsArrayList.add(viewGroup1);
                 }
             }
         }
-        return viewArrayList;
     }
 
     private static final int MSG_SETWIDGETDATA = 1, MSG_GETWIDGETDATA = 2;
@@ -197,7 +241,7 @@ public class MapsWidgetProvider extends AppWidgetProvider {
             super.handleMessage(msg);
             switch (msg.what) {
                 case MSG_SETWIDGETDATA:
-                    setShared((ArrayList<String>) msg.obj);
+                    setShared((MapsEntity) msg.obj);
                     break;
                 case MSG_GETWIDGETDATA:
                     getShared();
@@ -206,35 +250,32 @@ public class MapsWidgetProvider extends AppWidgetProvider {
         }
     };
 
-    public void setShared(final ArrayList<String> strs) {
-        String title0 = "";
-        String title1 = "";
+    public void setShared(final MapsEntity mapsEntity) {
+        String jsonMaps = JSONHelper.toJSON(mapsEntity);
         SharedPreferences sp = mContext.getSharedPreferences("googleMapNotificationData", mContext.MODE_APPEND);
         SharedPreferences.Editor editor = sp.edit();
-        for (int i = 0; i < strs.size(); i++) {
-            String str = strs.get(i);
-            if (str != null && str.length() > 0) {
-                editor.putString("title" + i, str);
-                editor.commit();
-                if (i == 0) {
-                    title0 = str;
-                }
-                if (i == 1) {
-                    title1 = str;
-                }
-            }
-        }
-        fillHandlerData(mContext, title0, title1);
+        editor.putString("jsonMaps", jsonMaps);
+        editor.commit();
+        fillHandlerData(mContext, mapsEntity);
     }
 
     private void getShared() {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
+                MapsEntity mapsEntity = new MapsEntity();
+                mapsEntity.setTitle_first(mContext.getResources().getString(R.string.city_name));
+                mapsEntity.setTitle_second(mContext.getResources().getString(R.string.street_name));
+                mapsEntity.setArrow(mContext.getResources().getDrawable(R.drawable.ic_launcher, null));
+                String jsonDefaultStrMaps = JSONHelper.toJSON(mapsEntity);
                 SharedPreferences sp = mContext.getSharedPreferences("googleMapNotificationData", mContext.MODE_APPEND);
-                String title0 = sp.getString("title0", mContext.getResources().getString(R.string.city_name));
-                String title1 = sp.getString("title1", mContext.getResources().getString(R.string.street_name));
-                fillHandlerData(mContext, title0, title1);
+                String jsonMaps = sp.getString("jsonMaps", jsonDefaultStrMaps);
+                try {
+                    mapsEntity = JSONHelper.parseObject(jsonMaps, MapsEntity.class);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                fillHandlerData(mContext, mapsEntity);
             }
         });
 

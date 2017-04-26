@@ -1,4 +1,4 @@
-package com.leeco.LeecoMapsWidget;
+package com.leeco.mapswidget;
 
 import android.app.Activity;
 import android.os.Bundle;

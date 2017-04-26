@@ -50,6 +50,15 @@ limitations under the License.
                 android:textColor="@color/white"
                 android:textSize="30sp"
                 />
+        <TextView
+                android:id="@+id/maps_text1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="20dp"
+                android:text="@string/street_name"
+                android:textColor="@color/white"
+                android:textSize="30sp"
+                />
     </LinearLayout>
     <ImageView
             android:layout_alignParentRight="true"
